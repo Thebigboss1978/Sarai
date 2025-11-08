@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Zero-Assistant — AlArab AI</title>
+<title>
+#	3.	من الآيباد افتح: http://<IP-جهازك>:8000/zero.html
+# (عدّل خانة الـ IP في أعلى الصفحة لو احتجت)
+
+إذا بدك نكمّل على هالنسخة ونبني فوقها بس “اللي يلزم”، احكي: تم — Zero-Mode مستمر
+#تشغيل محلي سريع (على جهاز الـ Mac/PC):
+	1.	احفظ الملف باسم zero.html داخل مجلد السيرفر
+  #python3 -m http.server 8000
+  #3.	من الآيباد افتح: http://<IP-جهازك>:8000/zero.html
+(عدّل خانة الـ IP في أعلى الصفحة لو احتجت)
+
+إذا بدك نكمّل على هالنسخة ونبني فوقها بس “اللي يلزم”، احكي: تم — Zero-Mode مستمر
+Zero-Assistant — AlArab AI</title>
+
+<style>
+  :root{--bg:#0b0f14;--glass:#ffffff22;--accent:#7ee787;--muted:#cbd5e1;--glass-strong:#ffffff33;
+        font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;color-scheme:dark}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071021 0%,#06131a 100%);color:var(--muted)}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:18px}
+  .card{width:100%;max-width:900px;background:linear-gradient(135deg,rgba(255,255,255,.02),rgba(255,255,255,.01));
+        backdrop-filter:blur(10px) saturate(120%);border-radius:16px;padding:16px;border:1px solid var(--glass)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .row input,.row select,.row button{background:var(--glass);border:1px solid var(--glass-strong);border-radius:10px;
+        padding:8px 12px;color:var(--muted);font-size:.85rem}
+  .row button{background:var(--accent);color:#0b0f14;font-weight:700;cursor:pointer}
+  .chat{height:52vh;overflow-y:auto;border:1px dashed var(--glass-strong);border-radius:12px;padding:10px;margin:10px 0}
+  .msg{display:flex;gap:8px;margin:8px 0}
+  .b{background:var(--glass);padding:8px 10px;border-radius:10px;max-width:80%}
+  .me .b{margin-left:auto;background:var(--glass-strong)}
+  .log{font-size:.75rem;color:#ffd76a;max-height:90px;overflow:auto;border-top:1px solid var(--glass);padding-top:6px}
+  .badge{padding:5px 10px;border-radius:8px;font-size:.75rem}
+  .off{background:#c0392b;color:#fff} .on{background:#1e7e34;color:#fff}
+  /* Execution Flow */
+  .flow{margin-top:12px;border-top:1px solid var(--glass);padding-top:10px}
+  .flow h3{margin:0 0 10px 0;color:var(--accent);text-align:center;font-size:1rem}
+  .step{display:flex;align-items:flex-start;background:var(--glass);border-radius:10px;padding:8px 10px;margin:6px 0;
+        transition:.2s;box-shadow:0 0 0 rgba(0,0,0,0)}
+  .n{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#0b0f14;display:flex;align-items:center;justify-content:center;margin-left:10px;font-weight:700}
+  .step.active{background:var(--glass-strong);box-shadow:0 0 16px rgba(126,231,135,.35)}
+  .arrow{color:var(--accent);text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+
+  <div class="row">
+    <strong style="color:var(--accent)">Zero-Assistant</strong>
+    <span id="conn" class="badge off">غير متصل</span>
+    <input id="ip" value="127.0.0.1" style="min-width:150px" placeholder="IP: 192.168.x.x" />
+    <select id="model"></select>
+    <span id="client" style="font-size:.8rem;background:var(--glass-strong);padding:5px 8px;border-radius:8px">Client: …</span>
+    <button id="ping">فحص اتصال</button>
+  </div>
+
+  <div id="chat" class="chat"></div>
+
+  <div class="row">
+    <input id="inp" style="flex:1" placeholder="اكتب الطلب… (Enter للإرسال)"/>
+    <button id="send">إرسال</button>
+  </div>
+
+  <div class="flow" id="flow">
+    <h3>⚙️ Execution Flow (طلب → نموذج → نتيجة)</h3>
+    <div class="step" data-i="0"><div class="n">1</div><div><b>User Request</b><div>استلام الطلب من الواجهة</div></div></div>
+    <div class="arrow">↓</div>
+    <div class="step" data-i="1"><div class="n">2</div><div><b>Orchestration</b><div>تحليل الطلب وتوجيهه</div></div></div>
+    <div class="arrow">↓</div>
+    <div class="step" data-i="2"><div class="n">3</div><div><b>Model Exec</b><div>تنفيذ النموذج</div></div></div>
+    <div class="arrow">↓</div>
+    <div class="step" data-i="3"><div class="n">4</div><div><b>Delivery</b><div>إرجاع النتيجة</div></div></div>
+  </div>
+
+  <div id="log" class="log">ضع IP الجهاز المشغّل للبوابة، افتح من الآيباد: http://IP:8000/zero.html</div>
+
+</div></div>
+
+<script>
+const CONFIG={API:'http://127.0.0.1:8000',OLLAMA:'http://127.0.0.1:11434',CLIENT:'Zero_Client_777'};
+const EXTERNAL=[{name:'Gemini 2.5 Flash (Cloud)',value:'gemini-2.5-flash'},{name:'Gemini 2.5 Pro (Cloud)',value:'gemini-2.5-pro'}];
+
+const $=id=>document.getElementById(id);
+const log=msg=>{const p=document.createElement('div');p.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;$('log').appendChild(p);$('log').scrollTop=$('log').scrollHeight;}
+const push=(t,me=false)=>{const d=document.createElement('div');d.className='msg'+(me?' me':'');const b=document.createElement('div');b.className='b';b.innerHTML=t.replace(/\n/g,'<br>');d.appendChild(b);$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight;}
+
+function setIP(ip){CONFIG.API=`http://${ip}:8000`;CONFIG.OLLAMA=`http://${ip}:11434`;log(`Gateway → ${CONFIG.API}`);}
+function conn(ok){const c=$('conn');c.textContent=ok?'متصل':'غير متصل';c.className='badge '+(ok?'on':'off');}
+
+function glow(i){
+  document.querySelectorAll('.step').forEach((s,idx)=>{
+    s.classList.toggle('active', idx===i);
+    if(idx<i) s.style.opacity=.95; else if(idx>i) s.style.opacity=.8; else s.style.opacity=1;
+  });
+}
+
+async function listModels(){
+  const sel=$('model'); sel.innerHTML='';
+  EXTERNAL.forEach(m=>{const o=document.createElement('option');o.value=m.value;o.textContent=m.name;sel.appendChild(o);});
+  try{
+    const r=await fetch(CONFIG.OLLAMA+'/api/tags'); if(!r.ok) throw 0;
+    const d=await r.json();
+    d.models?.forEach(m=>{const o=document.createElement('option');o.value=m.name;o.textContent=m.name;sel.appendChild(o);});
+    conn(true); log(`Ollama نماذج: ${d.models?.length||0}`);
+  }catch{conn(false); log('Ollama غير متاح الآن.')}
+}
+
+async function send(){
+  const text=$('inp').value.trim(); if(!text) return;
+  const model=$('model').value; if(!model){log('اختر نموذج أولاً');return;}
+  $('send').disabled=true; $('inp').value='';
+  push(text,true);
+
+  glow(0); log('Step1: User Request');
+  const payload={model_name:model,prompt:text,client_id:CONFIG.CLIENT,history:[]};
+
+  let reply=''; 
+  try{
+    glow(1); log('Step2: Orchestration…');
+    const r=await fetch(CONFIG.API+'/api/agent/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!r.ok){const e=await r.json().catch(()=>({detail:r.statusText}));throw new Error(e.detail||r.statusText);
+    }
+    glow(2); log('Step3: Model Exec…');
+    const data=await r.json();
+    reply=data.response||'(لا رد)';
+    conn(true);
+  }catch(e){
+    reply='❌ فشل الاتصال: '+e.message; conn(false); log(reply);
+  }
+
+  glow(3); log('Step4: Delivery');
+  push(reply);
+  try{
+    await fetch(CONFIG.API+'/api/memory/save',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({client_id:CONFIG.CLIENT,text_chunk:`USER:${text} | ASSISTANT:${reply}`})});
+  }catch{}
+  setTimeout(()=>glow(0),2500);
+  $('send').disabled=false;
+}
+
+window.onload=()=>{
+  $('client').textContent='Client: '+CONFIG.CLIENT;
+  const ip=new URLSearchParams(location.search).get('ip')||$('ip').value;
+  $('ip').value=ip; setIP(ip); listModels();
+  $('send').onclick=send; $('inp').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
+  $('ping').onclick=async()=>{
+    try{await fetch(CONFIG.API+'/health',{method:'GET'});conn(true);log('Gateway OK')}
+    catch{conn(false);log('Gateway غير متاح')}
+  };
+  // تهيئة حالة التدفق
+  glow(0);
+};
+$('ip').addEventListener('change',e=>{setIP(e.target.value);listModels()});
+</script>
+</body>
+</html>

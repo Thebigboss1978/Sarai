@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>𓂀 Functional Board | بوابة دندرة</title>
+    <style>
+        /* BASE SETUP */
+        body {
+            background-color: #000;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* DENDERA TEMPLE STRUCTURE */
+        .dendera-element {
+            position: fixed;
+            pointer-events: none; /* لتجنب التفاعل مع الماوس */
+        }
+
+        /* 1. CRYPT LIGHT (Base Layer) */
+        #crypt-light {
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4vh;
+            background: radial-gradient(circle, #00ffee33, transparent);
+            z-index: 0;
+        }
+
+        /* 2. HOLY SANCTUARY (Bottom Center Block) */
+        #holy-sanctuary {
+            bottom: 12vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20vw;
+            height: 20vh; /* تم إضافة ارتفاع افتراضي */
+            background: linear-gradient(to bottom, #005555, #000);
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 40px #00ffff;
+            z-index: 1;
+            opacity: 0.3;
+        }
+
+        /* 3. DENDERA COLUMNS (Left) */
+        #column-left {
+            top: 10vh;
+            left: 5vw;
+            width: 2vw;
+            height: 60vh;
+            background: radial-gradient(circle, #00ffee 30%, #003333);
+            box-shadow: 0 0 12px #00ffee;
+            z-index: 2;
+            opacity: 0.4;
+        }
+
+        /* 4. DENDERA COLUMNS (Right) */
+        #column-right {
+            top: 10vh;
+            right: 5vw;
+            width: 2vw;
+            height: 80vh;
+            background: radial-gradient(circle, #00ffee 30%, #008833);
+            box-shadow: 0 0 12px #00ffee;
+            z-index: 2;
+            opacity: 0.4;
+        }
+
+        /* 5. DENDERA COURT (Main Work Area) */
+        #dendera-court {
+            top: 30vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 20vh;
+            background: rgba(0, 255, 255, 0.05);
+            border-top: 1px solid #0ff;
+            border-bottom: 1px solid #0ff;
+            box-shadow: 0 0 12px #00ffff inset;
+            z-index: 2;
+            /* هنا يمكن وضع محتوى لوحة المفاتيح الذكية */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00ffff;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px #00ffee;
+        }
+
+        /* 6. DENDERA GATE STRUCTURE (Top Header/Controller) */
+        #dendera-gate {
+            top: 2vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40vw;
+            height: 8vh;
+            background: linear-gradient(to right, #0ff, #033);
+            border: 2px solid #0ff;
+            box-shadow: 0 0 20px #0ff;
+            z-index: 3;
+            opacity: 0.6;
+        }
+
+        /* 7. ASCENDING STAIR (Animated Element) */
+        #ascending-stair {
+            top: 50vh;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            width: 1vw;
+            height: 30vh;
+            background: repeating-linear-gradient(
+                to top,
+                #00ffff 1px,
+                transparent 5px,
+                transparent 10px
+            );
+            animation: stairAscend 6s linear infinite;
+            z-index: 3;
+            opacity: 0.4;
+        }
+
+        /* Animation Keyframes */
+        @keyframes stairAscend {
+            from {
+                transform: translate(-50%, -50%) translateY(0);
+            }
+            to {
+                transform: translate(-50%, -50%) translateY(-10vh);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="crypt-light" class="dendera-element"></div>
+
+    <div id="holy-sanctuary" class="dendera-element"></div>
+
+    <div id="column-left" class="dendera-element"></div>
+
+    <div id="column-right" class="dendera-element"></div>
+
+    <div id="dendera-court" class="dendera-element">
+        🌟 لوحة التحكم الوظيفية (Functional Board) - قاعة دندرة 🌟
+    </div>
+
+    <div id="dendera-gate" class="dendera-element"></div>
+
+    <div id="ascending-stair" class="dendera-element"></div>
+
+</body>
+</html>

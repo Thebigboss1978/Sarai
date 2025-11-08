@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>بوابة AlArab — Sky Gate (Sarai Activated)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* ====== CORE STYLES ====== */
+  :root{
+    --bg:#071021; --muted:#9aa7b2; --accent:#FFD166;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#02040a,#071021);color:var(--muted);font-family: "Inter", "Noto Sans Arabic", system-ui, sans-serif;}
+  .wrap{min-height:100%;display:flex;gap:18px;flex-direction:column;align-items:center;padding:18px;}
+  .panel{width:min(1200px,98%);background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.02));border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.6);}
+  header{display:flex;align-items:center;gap:12px}
+  .logo{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ffd16622,#7ee78711);color:var(--accent);font-weight:700}
+  canvas{background:transparent;border-radius:8px;width:100%;height:640px;display:block}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .btn{background:#11151b;color:#fff;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:all 0.2s}
+  .btn:hover{background:#1e242d}
+  .muted{color:var(--muted);font-size:13px}
+  .right{margin-left:auto}
+  footer{margin-top:12px;color:var(--muted);font-size:13px}
+  .badge{background:rgba(255,209,102,0.06);padding:6px 10px;border-radius:8px;color:var(--accent);border:1px solid rgba(255,209,102,0.06);transition:box-shadow 0.5s ease-in-out;}
+  .small{font-size:13px}
+  
+  /* ====== SARAI PROTOCOL STYLES ====== */
+  .hieroglyph-btn {
+    font-size: 3rem; /* حجم كبير للّمس */
+    background: none;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 10px 15px;
+    border-radius: 12px;
+    opacity: 0.5;
+    transition: opacity 0.3s, border-color 0.3s, background-color 0.3s;
+    line-height: 1;
+  }
+  .hieroglyph-btn:hover { opacity: 1; background: rgba(255,255,255,0.05); }
+  .hieroglyph-btn.active { 
+    opacity: 1; 
+    border-color: var(--accent);
+    background: rgba(255,209,102,0.1);
+  }
+  
+  #mirrorEcho {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: min(90%, 280px); /* responsive */
+    min-height: 80px;
+    background: rgba(2, 6, 23, 0.9);
+    border: 2px solid #7EE787;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 14px;
+    color: #7EE787; /* أخضر النبوءة */
+    box-shadow: 0 0 15px rgba(126, 231, 135, 0.5);
+    z-index: 100;
+    overflow-y: auto;
+    max-height: 30vh;
+    display: none; /* يبدأ مخفياً */
+  }
+  
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .controls { flex-direction: column; align-items: stretch; }
+    .right { margin-left: 0; margin-top: 12px; }
+    header { flex-wrap: wrap; }
+    #hieroglyphNav { justify-content: center; width: 100%; margin-top: 10px; }
+    #mirrorEcho { bottom: 10px; right: 10px; left: 10px; width: auto; }
+  }
+
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel" id="panel">
+    <header>
+      <div class="logo">𓁹</div>
+      <div>
+        <h1 style="margin:0;color:#fff">بوابة AlArab — Sky Gate (Sarai Activated)</h1>
+        <div class="muted small">حدد موقعك — وشغّل العرض الحي أو سوِّ محاكاة للوقت. **Sarai Voice UI Ready**</div>
+      </div>
+
+      <div class="right flex items-center gap-4">
+        <!-- لوحة التحكم الهيروغليفية -->
+        <div id="hieroglyphNav" class="flex gap-2">
+            <button class="hieroglyph-btn" data-key="Eye" data-target="starsToggle">𓁹</button> <!-- عين حورس (النجوم) -->
+            <button class="hieroglyph-btn" data-key="Beetle" data-target="moonToggle">𓆣</button> <!-- الجعران (القمر) -->
+            <button class="hieroglyph-btn" data-key="Gate" data-target="flightsToggle">𓂀</button> <!-- بوابة/باب (الطائرات/الرحلات) -->
+        </div>
+        <button class="btn bg-green-700 hover:bg-green-600 border-green-500" id="voiceBtn">🎤 تفعيل Sarai (Voice)</button>
+        <div class="badge" id="btcBadge">[الترميز الفارِق: BTC $---]</div>
+      </div>
+    </header>
+
+    <!-- لوحة العرض -->
+    <canvas id="skyCanvas" width="1200" height="640"></canvas>
+
+    <div class="controls">
+      <button class="btn" id="locBtn">حدد موقعي (Geolocate) هسا</button>
+      <button class="btn" id="nowBtn">الزمن: الآن</button>
+      
+      <!-- إخفاء Checkboxes وجعل التحكم عبر الرموز -->
+      <label class="muted small hidden" style="display:inline-flex;align-items:center;gap:6px">
+        <input type="checkbox" id="starsToggle" checked/> إظهار النجوم
+      </label>
+      <label class="muted small hidden" style="display:inline-flex;align-items:center;gap:6px">
+        <input type="checkbox" id="moonToggle" checked/> إظهار القمر
+      </label>
+      <label class="muted small hidden" style="display:inline-flex;align-items:center;gap:6px">
+        <input type="checkbox" id="flightsToggle" checked/> تتبّع الطائرات (OpenSky)
+      </label>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-left:auto">
+        <input id="dateInput" type="datetime-local" class="muted small p-2 rounded-lg border border-gray-700 bg-gray-900" style="color:var(--accent);" />
+        <button class="btn" id="playBtn">▶ تشغيل (سِرعة x1)</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:12px;align-items:center; flex-wrap: wrap;">
+      <div class="muted small">ملاحظات سريعة:</div>
+      <div class="muted small">1) تم دمج بروتوكول Sarai (الواجهة الصوتية الهيروغليفية). 2) OpenSky قد يرفض بسبب CORS — استخدم proxy أو خادم وسيط إذا احتجت. **3) جرب الأوامر الصوتية: "Show Eye" أو "Hide Gate"**</div>
+    </div>
+
+    <footer>
+      <div>**الحالة: أنت الآن المنفّذ القائد (Field Commander).** تم تحميل الكود بنجاح. **الآن يجب تفعيل الخريطة النجمية**</div>
+    </footer>
+  </div>
+</div>
+
+<!-- مربع المرآة/الصدى (Mirror Echo) -->
+<div id="mirrorEcho" style="display:block">Mirror Echo: Waiting for Voice/Text Input...</div>
+
+
+<!-- المكتبات (SunCalc من O) -->
+<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+
+<script>
+// =====================
+// CONFIG (عدل حسب حاجتك)
+// =====================
+const CONFIG = {
+  // طيران: استخدم OpenSky (محدود/مجاناً). إذا عندك بروكسي ضع الرابط هنا
+  OPENSKY_PROXY: '', 
+  STAR_SCALE: 1.0,
+  // نجوم مشهورة: RA (ساعات), Dec (درجات), mag تقريبية
+  STARS: [
+    {name:'Sirius', ra:6.7525, dec:-16.7161, mag:-1.46},
+    {name:'Canopus', ra:6.3992, dec:-52.6957, mag:-0.72},
+    {name:'Arcturus', ra:14.2610, dec:19.1825, mag:-0.05},
+    {name:'Vega', ra:18.6156, dec:38.7837, mag:0.03},
+    {name:'Capella', ra:5.2782, dec:45.9980, mag:0.08},
+    {name:'Rigel', ra:5.2423, dec:-8.2016, mag:0.12},
+    {name:'Betelgeuse', ra:5.9195, dec:7.4070, mag:0.42},
+    {name:'Procyon', ra:7.6550, dec:5.2250, mag:0.34},
+    {name:'Achernar', ra:1.6286, dec:-57.2367, mag:0.46},
+    {name:'Aldebaran', ra:4.5987, dec:16.5093, mag:0.85},
+    {name:'Antares', ra:16.4901, dec:-26.4319, mag:1.06},
+    {name:'Spica', ra:13.4199, dec:-11.1614, mag:1.0},
+    {name:'Pollux', ra:7.7553, dec:28.0262, mag:1.14},
+    {name:'Fomalhaut', ra:22.9608, dec:-29.6222, mag:1.16},
+    {name:'Deneb', ra:20.6905, dec:45.2803, mag:1.25},
+    {name:'Altair', ra:19.8464, dec:8.8683, mag:0.77},
+    {name:'Shaula', ra:17.5620, dec:-37.1038, mag:1.62},
+    {name:'Bellatrix', ra:5.4189, dec:6.3497, mag:1.64},
+  ],
+  BTC_PROVIDER_JS: '' 
+};
+
+// =====================
+// Helpers: تحويلات زمنية/فلكية
+// =====================
+function toRad(d){return d*Math.PI/180;}
+function toDeg(r){return r*180/Math.PI;}
+function julianDate(date){
+  const Y = date.getUTCFullYear(), M = date.getUTCMonth()+1, D = date.getUTCDate() +
+            date.getUTCHours()/24 + date.getUTCMinutes()/(24*60) + date.getUTCSeconds()/(24*3600);
+  let y=Y, m=M;
+  if(m<=2){ y=Y-1; m=M+12;}
+  const A=Math.floor(y/100), B=2-A+Math.floor(A/4);
+  const JD = Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + D + B - 1524.5;
+  return JD;
+}
+function gmst(date){
+  const jd = julianDate(date);
+  const T = (jd - 2451545.0)/36525.0;
+  let gmst = 280.46061837 + 360.98564736629*(jd-2451545) + 0.000387933*T*T - (T*T*T)/38710000;
+  gmst = (gmst % 360 + 360) % 360;
+  return gmst/15; // ساعات سماوية
+}
+function raDecToAltAz(raHours, decDeg, latDeg, lonDeg, date){
+  const LST = gmst(date) + lonDeg/15.0; 
+  const HA = (LST - raHours) * 15 * Math.PI/180; 
+  const dec = toRad(decDeg), lat = toRad(latDeg);
+  const alt = Math.asin(Math.sin(dec)*Math.sin(lat) + Math.cos(dec)*Math.cos(lat)*Math.cos(HA));
+  const az = Math.atan2(-Math.sin(HA), Math.tan(dec)*Math.cos(lat) - Math.sin(lat)*Math.cos(HA));
+  return { altDeg: toDeg(alt), azDeg: (toDeg(az)+360)%360 };
+}
+
+function altAzToXY(altDeg, azDeg, w, h){
+  const r = (90 - altDeg) / 90; 
+  const ang = toRad(azDeg - 90); 
+  const cx = w/2, cy = h/2;
+  const R = Math.min(w,h)/2 * 0.95;
+  const x = cx + R * r * Math.cos(ang);
+  const y = cy + R * r * Math.sin(ang);
+  return {x,y};
+}
+
+// =====================
+// CANVAS و رسم
+// =====================
+const canvas = document.getElementById('skyCanvas');
+const ctx = canvas.getContext('2d');
+
+let state = {
+  lat: 29.976, // default: أهرامات الجيزة
+  lon: 31.131,
+  time: new Date(),
+  running: false,
+  playSpeed: 1,
+};
+
+let planes = []; // cached planes
+let isVoiceActive = false;
+let recognition = null; // متغير لـ SpeechRecognition
+
+function drawSky(){
+  // Ensure the canvas is responsive by recalculating size
+  const panel = document.getElementById('panel');
+  // Set the canvas dimensions based on client size
+  const w = canvas.width = panel.clientWidth - 32; // panel padding is 16*2
+  const h = canvas.height = Math.min(w * (640/1200), 640); // Maintain aspect ratio if large, max height 640
+  
+  // High DPI support
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width *= dpr;
+  canvas.height *= dpr;
+  ctx.scale(dpr, dpr);
+  
+  const width = w, height = h; // Use logical size for drawing
+
+  ctx.clearRect(0,0,width,height);
+
+  const g = ctx.createLinearGradient(0,0,0,height);
+  g.addColorStop(0,'#071021');
+  g.addColorStop(1,'#021018');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,width,height);
+
+  ctx.save();
+  ctx.globalAlpha = 0.08;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.ellipse(width/2,height/2,Math.min(width,height)/2*0.95,Math.min(width,height)/2*0.95,0,0,Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+
+  if(document.getElementById('starsToggle').checked) drawStars(width,height);
+  if(document.getElementById('moonToggle').checked) drawMoon(width,height);
+  if(document.getElementById('flightsToggle').checked) drawPlanes(width,height);
+  
+  // تحديث حالة الرموز الهيروغليفية
+  updateHieroglyphButtons();
+}
+
+function drawStars(w,h){
+  ctx.save();
+  const now = state.time;
+  for(const s of CONFIG.STARS){
+    const pos = raDecToAltAz(s.ra, s.dec, state.lat, state.lon, now);
+    if(pos.altDeg > 0){ 
+      const p = altAzToXY(pos.altDeg, pos.azDeg, w, h);
+      const mag = Math.max(0.2, 2.5 - (s.mag || 1.0)); 
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.globalAlpha = Math.max(0.15, 1 - (s.mag||1)/5);
+      ctx.arc(p.x, p.y, Math.max(1.0, mag*CONFIG.STAR_SCALE), 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawMoon(w,h){
+  const now = state.time;
+  const moonPos = SunCalc.getMoonPosition(now, state.lat, state.lon);
+  const moonIll = SunCalc.getMoonIllumination(now);
+  const altDeg = moonPos.alt * 180/Math.PI;
+  const azDeg = moonPos.az * 180/Math.PI;
+  if(altDeg > -5){ 
+    const p = altAzToXY(altDeg, (azDeg+360)%360, w, h);
+    const r = 14; 
+    const grd = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*1.8);
+    grd.addColorStop(0, `rgba(255,250,220,${0.85})`);
+    grd.addColorStop(0.6, `rgba(255,240,200,${0.25})`);
+    grd.addColorStop(1, `rgba(0,0,0,0)`);
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(p.x,p.y,r*1.6,0,Math.PI*2); ctx.fill();
+
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(255,255,230,1)';
+    ctx.arc(p.x,p.y,r,0,Math.PI*2);
+    ctx.fill();
+
+    const frac = moonIll.fraction; 
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0,0,0,1)';
+    const offset = (1 - frac) * r * (moonIll.phase <= 0.5 ? 1 : -1);
+    ctx.beginPath();
+    ctx.ellipse(p.x+offset, p.y, r, r, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(220,230,255,0.9)';
+    ctx.font = `14px sans-serif`;
+    ctx.fillText(`القمر — ارتفاع ${altDeg.toFixed(1)}°، اتجاه ${azDeg.toFixed(0)}°، طور ${(moonIll.phase*360).toFixed(0)}°`, 12, (h - 18));
+  }
+}
+
+async function fetchPlanes(){
+  try {
+    const dLat = 0.5, dLon = 0.8;
+    const lamin = state.lat - dLat, lamax = state.lat + dLat;
+    const lomin = state.lon - dLon, lomax = state.lon + dLon;
+    let url;
+    if(CONFIG.OPENSKY_PROXY){
+      url = CONFIG.OPENSKY_PROXY + `${lamin},${lamax},${lomin},${lomax}`;
+    } else {
+      url = `https://opensky-network.org/api/states/all?lamin=${lamin}&lamax=${lamax}&lomin=${lomin}&lomax=${lomax}`;
+    }
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('opensky fetch failed: ' + res.status);
+    const j = await res.json();
+    planes = (j.states || []).map(s => {
+      return {
+        icao: s[0], callsign: (s[1]||'').trim(), originCountry: s[2],
+        lon: s[5], lat: s[6], altitude: s[7], velocity: s[9]
+      };
+    });
+  } catch(err){
+    console.warn('fetchPlanes error', err);
+    planes = [];
+    updateMirrorEcho('Sarai: Cannot fetch flights (OpenSky CORS/Limit Error).');
+  }
+}
+
+function drawPlanes(w,h){
+  if(!planes || planes.length===0) return;
+  ctx.save();
+  ctx.fillStyle = '#FFD166';
+  ctx.strokeStyle = '#ffd166cc';
+  ctx.font = `12px sans-serif`;
+  for(const p of planes){
+    if(!p.lat || !p.lon) continue;
+    const dLat = p.lat - state.lat;
+    const dLon = (p.lon - state.lon) * Math.cos(toRad(state.lat));
+    const ang = Math.atan2(dLon, dLat); 
+    let azDeg = (toDeg(ang) + 360) % 360;
+    const distDeg = Math.hypot(dLat, dLon);
+    const altDeg = Math.max(-30, 90 - distDeg * 2.5); 
+    const xy = altAzToXY(altDeg, azDeg, w, h);
+
+    ctx.beginPath();
+    ctx.fillStyle = '#FFD166';
+    ctx.strokeStyle = 'rgba(255, 209, 102, 0.9)';
+    ctx.arc(xy.x, xy.y, 6, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.fillStyle = '#fff';
+    ctx.fillText(p.callsign || p.icao || '---', xy.x + 8, xy.y + 4);
+  }
+  ctx.restore();
+}
+
+// =====================
+// SARAI PROTOCOL (Voice/Hieroglyph/Mirror Echo)
+// =====================
+
+// وظيفة تحديث أزرار الهيروغليفية
+function updateHieroglyphButtons() {
+    document.querySelectorAll('.hieroglyph-btn').forEach(button => {
+        const targetId = button.getAttribute('data-target');
+        const targetToggle = document.getElementById(targetId);
+        if (targetToggle && targetToggle.checked) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+}
+
+// معالجة النقر على الأزرار الهيروغليفية
+document.querySelectorAll('.hieroglyph-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        const targetId = button.getAttribute('data-target');
+        toggleFeature(targetId);
+    });
+});
+
+// وظيفة تفعيل/إلغاء تفعيل الـ Toggle
+function toggleFeature(targetId) {
+    const targetToggle = document.getElementById(targetId);
+    if (targetToggle) {
+        targetToggle.checked = !targetToggle.checked;
+        drawSky(); // إعادة رسم السماء
+        
+        // جلب الطائرات عند التفعيل
+        if (targetId === 'flightsToggle' && targetToggle.checked) {
+            fetchPlanes();
+        } else if (targetId === 'flightsToggle' && !targetToggle.checked) {
+            planes = [];
+        }
+
+        const featureName = targetId.replace('Toggle', '');
+        updateMirrorEcho(`Sarai: The **${featureName}** feature has been toggled to **${targetToggle.checked ? 'ON' : 'OFF'}**.`);
+    }
+}
+
+
+// وظيفة تحديث مربع المرآة
+function updateMirrorEcho(text) {
+    const mirrorEcho = document.getElementById('mirrorEcho');
+    mirrorEcho.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<span style="color:#FFD166; font-weight:bold;">$1</span>'); // تمييز النص الهام
+    mirrorEcho.style.display = 'block';
+    mirrorEcho.scrollTop = mirrorEcho.scrollHeight; // التمرير لأسفل
+}
+
+// وظيفة تفعيل Voice Command
+function startVoiceCommand() {
+    if (!('webkitSpeechRecognition' in window)) {
+        updateMirrorEcho('Error: Web Speech API is not supported in this browser. Please use Chrome/Edge.');
+        return;
+    }
+
+    if (!recognition) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US'; // يمكن تغييرها إلى 'ar-EG' لكن الدقة بالإنجليزية أعلى للأوامر البسيطة
+
+        recognition.onstart = () => {
+            isVoiceActive = true;
+            document.getElementById('voiceBtn').textContent = '🔴 Sarai LISTENING...';
+            document.getElementById('voiceBtn').classList.add('bg-red-700', 'hover:bg-red-600', 'border-red-500');
+            document.getElementById('voiceBtn').classList.remove('bg-green-700', 'hover:bg-green-600', 'border-green-500');
+            updateMirrorEcho('Sarai Activated: Waiting for the Mandate (e.g., "Show Eye" or "Hide Gate").');
+        };
+
+        recognition.onresult = (event) => {
+            const result = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+            updateMirrorEcho(`**Voice Input**: ${result}`);
+            processVoiceCommand(result);
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error', event);
+            updateMirrorEcho(`Sarai Error: ${event.error}. Re-activate to retry.`);
+            isVoiceActive = false;
+        };
+
+        recognition.onend = () => {
+            isVoiceActive = false;
+            document.getElementById('voiceBtn').textContent = '🎤 تفعيل Sarai (Voice)';
+            document.getElementById('voiceBtn').classList.remove('bg-red-700', 'hover:bg-red-600', 'border-red-500');
+            document.getElementById('voiceBtn').classList.add('bg-green-700', 'hover:bg-green-600', 'border-green-500');
+        };
+    }
+    
+    if (isVoiceActive) {
+        recognition.stop();
+    } else {
+        recognition.start();
+    }
+}
+
+// وظيفة معالجة الأمر الصوتي
+function processVoiceCommand(command) {
+    const commandMap = [
+        { keys: ['eye', 'stars', 'sirius', 'عين'], target: 'starsToggle' },
+        { keys: ['beetle', 'moon', 'scarab', 'قمر', 'جعران'], target: 'moonToggle' },
+        { keys: ['gate', 'flights', 'air', 'رحلات', 'طائرات', 'بوابة'], target: 'flightsToggle' },
+    ];
+
+    let found = false;
+    for (const item of commandMap) {
+        if (item.keys.some(key => command.includes(key))) {
+            const targetToggle = document.getElementById(item.target);
+
+            // تحديد الإجراء: إخفاء أم إظهار
+            const shouldHide = command.includes('hide') || command.includes('off') || command.includes('إخفاء');
+            const shouldShow = command.includes('show') || command.includes('on') || command.includes('إظهار');
+
+            let action = null;
+            if (shouldHide) {
+                action = 'HIDE';
+                targetToggle.checked = false;
+            } else if (shouldShow) {
+                action = 'SHOW';
+                targetToggle.checked = true;
+            } else {
+                 // إذا لم يحدد إظهار أو إخفاء، نقوم بالتبديل
+                 targetToggle.checked = !targetToggle.checked;
+                 action = targetToggle.checked ? 'TOGGLE_ON' : 'TOGGLE_OFF';
+            }
+            
+            drawSky();
+            updateMirrorEcho(`Sarai: Executing command **${action} ${item.keys[0].toUpperCase()}**.`);
+            
+             if (item.target === 'flightsToggle') {
+                if (targetToggle.checked) {
+                    fetchPlanes();
+                } else {
+                    planes = [];
+                }
+            }
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        updateMirrorEcho(`Sarai: Command **"${command}"** not recognized. Try "Show Eye" or "Hide Moon".`);
+    }
+}
+
+// ربط الزر بتفعيل الصوت
+document.getElementById('voiceBtn').addEventListener('click', startVoiceCommand);
+
+
+// =====================
+// Loop / time control
+// =====================
+let rafId = null;
+function tick(){
+  if(state.running){
+    state.time = new Date(state.time.getTime() + 1000 * state.playSpeed);
+  }
+  drawSky();
+  rafId = requestAnimationFrame(tick);
+}
+window.onload = function () {
+    // Start the animation on window load.
+    tick(); 
+}
+
+
+// =====================
+// UI handlers
+// =====================
+document.getElementById('locBtn').addEventListener('click', async ()=>{
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(p=>{
+      state.lat = p.coords.latitude;
+      state.lon = p.coords.longitude;
+      updateMirrorEcho(`Sarai: Geolocation set to Lat: **${state.lat.toFixed(3)}**, Lon: **${state.lon.toFixed(3)}**.`);
+      fetchPlanes().then(()=>{ drawSky(); });
+    }, e=>{
+      updateMirrorEcho('Error: Geolocation Failed: ' + e.message);
+    });
+  } else updateMirrorEcho('Error: Geolocation is not available in this browser.');
+});
+
+document.getElementById('nowBtn').addEventListener('click', ()=>{
+  state.time = new Date();
+  drawSky();
+  updateMirrorEcho('Sarai: Time synchronized to **NOW**.');
+});
+
+document.getElementById('playBtn').addEventListener('click', (ev)=>{
+  state.running = !state.running;
+  ev.target.textContent = state.running ? '⏸ إيقاف' : '▶ تشغيل (سِرعة x1)';
+  updateMirrorEcho(`Sarai: Simulation set to **${state.running ? 'RUNNING' : 'PAUSED'}**.`);
+});
+
+document.getElementById('dateInput').addEventListener('change', (e)=>{
+  const v = e.target.value;
+  if(v){ state.time = new Date(v); drawSky(); updateMirrorEcho(`Sarai: Simulation time set.`); }
+});
+
+// Event listeners for internal checkboxes (triggered by hieroglyphs)
+document.getElementById('starsToggle').addEventListener('change', ()=> drawSky());
+document.getElementById('moonToggle').addEventListener('change', ()=> drawSky());
+document.getElementById('flightsToggle').addEventListener('change', async (e)=>{
+  if(e.target.checked){
+    await fetchPlanes();
+    drawSky();
+  } else {
+    planes = [];
+    drawSky();
+  }
+});
+
+
+setInterval(async ()=>{
+  if(document.getElementById('flightsToggle').checked){
+    await fetchPlanes();
+  }
+}, 15000); 
+
+window.addEventListener('resize', ()=> drawSky());
+
+// =====================
+// BTC badge (الدرج الصاعد)
+// =====================
+async function updateBTC(){
+  try{
+    // نستخدم API عام وبسيط للعملات المشفرة
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+    const j = await r.json();
+    const v = j.bitcoin && j.bitcoin.usd ? j.bitcoin.usd : null;
+    const change24h = j.bitcoin && j.bitcoin.usd_24hr_change ? j.bitcoin.usd_24hr_change : 0;
+    
+    const btcBadge = document.getElementById('btcBadge');
+    
+    if(v) {
+        const valueStr = Number(v).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        const changeStr = change24h.toFixed(2);
+        btcBadge.textContent = `[الترميز الفارِق: BTC $${valueStr} | ${changeStr}%]`;
+    }
+    
+    // ربط الـ ASCENDING STAIR بالتقلب (تأثير الظل)
+    if (change24h > 0.5) { // ارتفاع جيد
+        btcBadge.style.boxShadow = '0 0 15px rgba(126, 231, 135, 0.7)'; // أخضر
+    } else if (change24h < -0.5) { // انخفاض
+        btcBadge.style.boxShadow = '0 0 15px rgba(255, 60, 60, 0.7)'; // أحمر
+    } else {
+        btcBadge.style.boxShadow = '0 0 10px rgba(255,209,102, 0.5)'; // محايد/أصفر خفيف
+    }
+
+  }catch(e){
+    console.warn('btc fetch', e);
+    const btcBadge = document.getElementById('btcBadge');
+    btcBadge.textContent = `[الترميز الفارِق: BTC $--- (ERR)]`;
+    btcBadge.style.boxShadow = '0 0 10px rgba(255,255,255,0.1)';
+  }
+}
+updateBTC();
+setInterval(updateBTC, 30*1000); // كل 30 ثانية
+
+// initial fetch planes
+fetchPlanes();
+
+</script>
+</body>
+</html>

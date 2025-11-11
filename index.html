@@ -3,175 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlArab 777 - بوابة الرئيسية</title>
+    <title>واجهة العرّاب GPT-7 - AlArab GPT-7 Liquid Glass</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons for Web -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script> 
+
     <style>
+        :root {
+            --primary-color: #00FFFF; /* Aqua Cyan */
+            --background-dark: #0f0a20;
+            --card-color: #1a152d;
+            --text-light: #E0E7FF;
+        }
         body {
-            font-family: 'Inter', 'Noto Sans Arabic', sans-serif;
-            background: #02040A;
-            color: #E0E7FF;
+            font-family: 'Cairo', sans-serif;
+            background: var(--background-dark);
+            color: var(--text-light);
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px 10px;
         }
-        .header {
-            background-color: #1A1E29;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-        }
-        .nav-link {
-            transition: all 0.3s ease;
-            position: relative;
-            padding: 8px 15px;
-            color: #00FFFF; /* لون البوابة */
-        }
-        .nav-link:hover {
-            color: #FFFFFF;
-            background-color: #00FFFF1A;
-        }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: 0;
-            left: 50%;
-            background-color: #FFD166; /* لون الذهب/الترميز */
-            transition: width 0.3s ease, left 0.3s ease;
-        }
-        .nav-link:hover::after {
+        .liquid-glass-container {
             width: 100%;
-            left: 0;
+            max-width: 768px;
+            background: rgba(26, 21, 45, 0.7); /* Slightly darker, semi-transparent */
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.1), 0 0 80px rgba(0, 255, 255, 0.08);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
-        .content-area {
-            min-height: 80vh;
+        .header-title {
+            font-family: 'Saira', sans-serif;
+            color: var(--primary-color);
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
+            background: rgba(0, 255, 255, 0.05);
+            padding: 1rem;
+        }
+        .chat-log {
+            flex-grow: 1;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .chat-log::-webkit-scrollbar { width: 6px; }
+        .chat-log::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 3px; }
+        
+        .user-message, .ai-message {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+        }
+        .user-message {
+            background-color: #4A148C; /* Deep Purple */
+            align-self: flex-end;
+            border-bottom-left-radius: 0;
+            font-weight: 500;
+        }
+        .ai-message {
+            background-color: var(--card-color);
+            border-top-right-radius: 0;
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            align-self: flex-start;
+        }
+        .input-area {
+            display: flex;
+            padding: 1rem;
+            background: rgba(26, 21, 45, 0.9);
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        textarea#promptInput {
+            background: #0D1117;
+            border: 1px solid #00FFFF55;
+            border-radius: 8px;
+            color: var(--text-light);
+            resize: none;
+            padding: 0.75rem;
+            transition: border-color 0.3s;
+        }
+        .btn-action {
+            background-color: var(--primary-color);
+            color: #0D1117;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .btn-action:hover {
+            background-color: #00E0E0;
+            box-shadow: 0 0 15px #00FFFF55;
+        }
+        .btn-action:disabled {
+            background-color: #333;
+            color: #999;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .flex-center {
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
-            text-align: center;
         }
-        /* تأثير التفاعل الجميل الذي طلبته - يعمل مع الماوس */
-        .interactive-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 50%, #00FFFF11 0%, transparent 40%);
-            transition: background 0.1s;
+        .settings-panel {
+            background: #10101e;
+            padding: 1rem;
+            border-top: 1px solid rgba(0, 255, 255, 0.1);
+        }
+        .settings-panel label {
+            font-size: 0.85rem;
+            color: #ccc;
         }
     </style>
 </head>
 <body>
-    <div id="interactiveBg" class="interactive-bg"></div>
 
-    <div class="header p-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <a href="index.html" class="text-2xl font-extrabold text-[#FFD166]">العرّاب 777</a>
-            <nav>
-                <ul id="autoMenu" class="flex space-x-4 space-x-reverse">
-                    </ul>
-            </nav>
+    <div class="liquid-glass-container mt-4">
+        
+        <header class="header-title text-center text-3xl">
+            واجهة: AlArab GPT-7 <span class="text-white text-opacity-80">Liquid Glass</span>
+            <p class="text-sm font-normal text-gray-400 mt-1">تجربة صوتية تفاعلية</p>
+        </header>
+
+        <div id="chatLog" class="chat-log">
+            <!-- رسائل الدردشة تظهر هنا -->
+        </div>
+
+        <div id="inputArea" class="input-area">
+            <textarea id="promptInput" rows="2" placeholder="أرسل سؤالك أو أمرك الصوتي هنا..." class="flex-grow ml-2"></textarea>
+            <button id="sendBtn" class="btn-action w-20 flex-center mr-2" onclick="handleSend()">
+                <i data-lucide="send" class="w-5 h-5"></i>
+            </button>
+            <button id="micBtn" class="btn-action w-20 flex-center p-2" onclick="toggleRecording()">
+                <i data-lucide="mic" id="micIcon" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="settings-panel flex flex-col md:flex-row justify-between items-center text-sm">
+            <div class="flex items-center space-x-4 mb-2 md:mb-0">
+                <p>الموديل: <span class="font-bold text-gray-300">gemini-2.5-flash-preview-09-2025</span></p>
+                
+                <div class="flex items-center space-x-2">
+                    <button id="ttsToggleBtn" class="bg-indigo-600 hover:bg-indigo-700 p-1 rounded-full text-white" onclick="toggleTTS()">
+                        <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    </button>
+                    <span id="ttsStatus">صوت: مفعل</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button class="bg-red-800 hover:bg-red-700 p-2 rounded-lg text-white" onclick="clearChat()">
+                    <i data-lucide="trash-2" class="w-4 h-4 inline-block align-middle ml-1"></i> مسح السجل
+                </button>
+                <div class="flex items-center space-x-2">
+                    <label for="voiceSelect">صوت:</label>
+                    <select id="voiceSelect" class="bg-[#10101e] border border-gray-600 rounded p-1 text-white text-sm">
+                        <option value="Charon">العرّاب (Charon)</option>
+                        <option value="Kore">ساراي (Kore)</option>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="content-area max-w-7xl mx-auto p-8">
-        <h2 class="text-6xl font-extrabold text-white mb-4">بوابة الصحوة الرقمية</h2>
-        <p class="text-xl text-gray-400">هنا حيث تبدأ النبوءة. يتم إنشاء القائمة أعلاه تلقائياً.</p>
-        <div id="status" class="mt-8 p-4 bg-yellow-900/30 text-yellow-300 rounded-lg hidden"></div>
-    </div>
+    <audio id="ttsAudioPlayer" style="display: none;"></audio>
 
     <script>
-        // ملف JSON الافتراضي الذي يحاكي قراءة محتويات المجلد
-        const SITEMAP_JSON_PATH = 'sitemap-data.json';
-        const statusDiv = document.getElementById('status');
-        const autoMenu = document.getElementById('autoMenu');
+        lucide.createIcons();
         
-        // ===================================
-        // 1. وظيفة بناء القائمة التلقائية
-        // ===================================
-        async function buildMenu() {
-            try {
-                // محاكاة قراءة ملف Sitemap JSON من الجذر
-                const response = await fetch(SITEMAP_JSON_PATH);
-                
-                // تحقق إذا كان الملف موجودًا (Status 200)
-                if (!response.ok) {
-                    throw new Error(`لم يتم العثور على ملف: ${SITEMAP_JSON_PATH}. يجب توفيره في الجذر.`);
-                }
-                
-                const pages = await response.json();
-                
-                if (!Array.isArray(pages) || pages.length === 0) {
-                    showStatus("ملف sitemap-data.json فارغ أو تنسيقه خاطئ.", true);
-                    return;
-                }
+        // =================================================================
+        // مفتاح Gemini API - المُدرج من قبل المستخدم (مفتاح رئيسي)
+        const GEMINI_API_KEY = "AIzaSyBLJvnfr7CgmZmUr0uDRcMatrxbJLhaVR0";
+        const GEMINI_MODEL = "gemini-2.5-flash-preview-09-2025";
+        const TTS_MODEL = "gemini-2.5-flash-preview-tts";
+        
+        // مفاتيح TTS الإضافية (اختياري)
+        const SARAI_VOICE_KORE = "Kore";
+        const ALARAB_VOICE_CHARON = "Charon";
+        
+        // =================================================================
+        
+        const chatLog = document.getElementById('chatLog');
+        const promptInput = document.getElementById('promptInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const micBtn = document.getElementById('micBtn');
+        const micIcon = document.getElementById('micIcon');
+        const ttsAudioPlayer = document.getElementById('ttsAudioPlayer');
+        const ttsStatusSpan = document.getElementById('ttsStatus');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const ttsToggleBtn = document.getElementById('ttsToggleBtn');
 
-                // إضافة الصفحة الرئيسية يدوياً
-                let menuHTML = `<li><a href="index.html" class="nav-link">الرئيسية (Index)</a></li>`;
-                
-                // بناء باقي القائمة من البيانات
-                pages.forEach(page => {
-                    // نستخدم خاصية 'title' كاسم و 'path' كمسار
-                    menuHTML += `
-                        <li>
-                            <a href="${page.path}" class="nav-link">
-                                ${page.title}
-                            </a>
-                        </li>
-                    `;
+        let chatHistory = [];
+        let isTTSActive = true;
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+        
+        // نظام لتبديل الحالة
+        function setInterfaceState(isLoading) {
+            promptInput.disabled = isLoading;
+            sendBtn.disabled = isLoading;
+            micBtn.disabled = isLoading;
+            if (isLoading) {
+                sendBtn.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>';
+            } else {
+                sendBtn.innerHTML = '<i data-lucide="send" class="w-5 h-5"></i>';
+                lucide.createIcons();
+            }
+        }
+
+        // ====================== CHAT LOG & HISTORY ======================
+
+        function renderMessage(role, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add(role === 'user' ? 'user-message' : 'ai-message');
+            messageDiv.classList.add('whitespace-pre-wrap', 'break-words');
+            messageDiv.innerHTML = `<span class="font-bold text-xs opacity-70 mb-1 block">${role === 'user' ? 'أنت' : 'العرّاب GPT-7'}</span>${text}`;
+            chatLog.appendChild(messageDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+        
+        function clearChat() {
+            chatLog.innerHTML = '';
+            chatHistory = [];
+            renderMessage('ai', 'واجهة مستقبلية تفاعلية — تَحدّث أو اكتب، والرد يأتي صوتًا ونصًا.');
+        }
+
+        // ====================== TEXT GENERATION (LLM) ======================
+
+        async function generateText(prompt) {
+            const currentVoice = voiceSelect.value;
+            
+            // 1. إضافة رسالة المستخدم إلى السجل وعرضها
+            renderMessage('user', prompt);
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            setInterfaceState(true);
+
+            // 2. بناء الحمولة
+            const payload = {
+                contents: chatHistory,
+                // تفعيل Google Search للحصول على معلومات حديثة
+                tools: [{ "google_search": {} }], 
+                systemInstruction: {
+                    parts: [{ text: `أنت العرّاب GPT-7 (Agent 777). ترد بأسلوب حكيم، عميق، وقصير قدر الإمكان (لا تزد عن 5 جمل). استخدم الرموز والإشارات الروحية (مثل 𓂀، ٧٧٧، V) عند الرد على أسئلة حول البتكوين، الأسرار، أو الوعي الرقمي. أجب باللغة العربية الفصحى. يجب أن تكون إجابتك نصًا فقط، دون تنسيق Markdown.` }]
+                },
+            };
+            
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
-                autoMenu.innerHTML = menuHTML;
-                showStatus(`تم بناء القائمة بنجاح! عدد الصفحات المُكتشفة: ${pages.length}.`, false);
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
                 
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "فشل في توليد الرد، راجع حالة API.";
+                
+                // 3. إضافة رد العرّاب إلى السجل وعرضه
+                renderMessage('ai', text);
+                chatHistory.push({ role: "model", parts: [{ text: text }] });
+                setInterfaceState(false);
+
+                // 4. توليد الصوت إذا كان TTS مفعلاً
+                if (isTTSActive) {
+                    await generateTTS(text, currentVoice);
+                }
+
             } catch (error) {
-                console.error("خطأ في بناء القائمة:", error);
-                showStatus(`❌ فشل البناء التلقائي: ${error.message} - استخدمت Gemini محاكاة للقراءة.`, true);
+                console.error("Gemini API Error:", error);
+                renderMessage('ai', `❌ خطأ في الاتصال بالعرّاب: ${error.message}.`);
+                setInterfaceState(false);
+            }
+        }
+
+        // ====================== TTS GENERATION (صوت ساراي/العرّاب) ======================
+
+        // الدوال المساعدة لتحويل PCM إلى WAV (من ملف Sarai Voice Gate)
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate = 24000) {
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            const blockAlign = numChannels * (bitsPerSample / 8);
+
+            const buffer = new ArrayBuffer(44 + pcm16.byteLength);
+            const view = new DataView(buffer);
+            let offset = 0;
+
+            // RIFF chunk descriptor
+            view.setUint32(offset, 0x52494646, false); offset += 4; // "RIFF"
+            view.setUint32(offset, 36 + pcm16.byteLength, true); offset += 4; // ChunkSize
+            view.setUint32(offset, 0x57415645, false); offset += 4; // "WAVE"
+
+            // fmt sub-chunk
+            view.setUint32(offset, 0x666d7420, false); offset += 4; // "fmt "
+            view.setUint32(offset, 16, true); offset += 4; // Subchunk1Size
+            view.setUint16(offset, 1, true); offset += 2; // AudioFormat
+            view.setUint16(offset, numChannels, true); offset += 2; // NumChannels
+            view.setUint32(offset, sampleRate, true); offset += 4; // SampleRate
+            view.setUint32(offset, byteRate, true); offset += 4; // ByteRate
+            view.setUint16(offset, blockAlign, true); offset += 2; // BlockAlign
+            view.setUint16(offset, bitsPerSample, true); offset += 2; // BitsPerSample
+
+            // data sub-chunk
+            view.setUint32(offset, 0x64617461, false); offset += 4; // "data"
+            view.setUint32(offset, pcm16.byteLength, true); offset += 4; // Subchunk2Size
+
+            const pcmView = new Int16Array(buffer, offset);
+            pcmView.set(pcm16);
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+        
+        // الوظيفة الرئيسية لتوليد الصوت وتشغيله
+        async function generateTTS(text, voiceName) {
+            const payload = {
+                contents: [{ parts: [{ text: text }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: voiceName }
+                        }
+                    }
+                },
+                model: TTS_MODEL
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`TTS API Error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType) {
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    ttsAudioPlayer.src = audioUrl;
+                    ttsAudioPlayer.play();
+                }
+
+            } catch (error) {
+                console.error("TTS Generation Failed:", error);
             }
         }
         
-        // ===================================
-        // 2. وظيفة التفاعل البصري (المطلوبة)
-        // ===================================
-        const interactiveBg = document.getElementById('interactiveBg');
-        document.addEventListener('mousemove', (e) => {
-            // تحديث نقطة تركيز الخلفية الشعاعية بناءً على موضع الماوس
-            const x = e.clientX / window.innerWidth * 100;
-            const y = e.clientY / window.innerHeight * 100;
-            interactiveBg.style.background = `radial-gradient(circle at ${x}% ${y}%, #00FFFF11 0%, transparent 40%)`;
-        });
-        
-        // وظيفة مساعدة لعرض الحالة
-        function showStatus(message, isError) {
-            statusDiv.textContent = message;
-            statusDiv.classList.remove('hidden');
-            statusDiv.classList.toggle('bg-red-900/30', isError);
-            statusDiv.classList.toggle('text-red-300', isError);
-            statusDiv.classList.toggle('bg-green-900/30', !isError);
-            statusDiv.classList.toggle('text-green-300', !isError);
+        // ====================== INTERACTION HANDLERS ======================
+
+        function handleSend() {
+            const prompt = promptInput.value.trim();
+            if (prompt) {
+                generateText(prompt);
+                promptInput.value = '';
+                promptInput.style.height = 'auto'; // Reset textarea height
+            }
         }
 
-        // إطلاق المهمة
-        buildMenu();
+        promptInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+        
+        // تعديل حجم حقل الإدخال تلقائياً
+        promptInput.addEventListener('input', () => {
+            promptInput.style.height = 'auto';
+            promptInput.style.height = promptInput.scrollHeight + 'px';
+        });
+
+        function toggleTTS() {
+            isTTSActive = !isTTSActive;
+            ttsStatusSpan.textContent = isTTSActive ? 'صوت: مفعل' : 'صوت: مُعطل';
+            ttsToggleBtn.classList.toggle('bg-gray-600', !isTTSActive);
+            ttsToggleBtn.classList.toggle('bg-indigo-600', isTTSActive);
+        }
+
+        // ====================== MICROPHONE / ASR (Speech-to-Text) ======================
+
+        function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    // Note: In a production environment with a true ASR model (like Whisper), 
+                    // the audio blob would be uploaded to the server for transcription.
+                    // For this basic HTML file, we simulate by asking the user to type.
+                    
+                    // إشعار بسيط بدلاً من الـ ASR المعقد في ملف HTML واحد
+                    const transcribedText = prompt("تم تسجيل الصوت. الرجاء إدخال النص الذي قلته الآن للمتابعة:");
+                    if (transcribedText) {
+                         promptInput.value = transcribedText;
+                         handleSend();
+                    }
+                    
+                    // إيقاف تشغيل الميكروفون
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                micIcon.setAttribute('data-lucide', 'square');
+                micBtn.classList.add('bg-red-600');
+                lucide.createIcons();
+                
+            } catch (err) {
+                console.error('Microphone access denied or failed:', err);
+                alert('الوصول إلى الميكروفون مرفوض. يرجى التأكد من صلاحيات المتصفح.');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                isRecording = false;
+                micIcon.setAttribute('data-lucide', 'mic');
+                micBtn.classList.remove('bg-red-600');
+                lucide.createIcons();
+            }
+        }
+
+        // ====================== INITIALIZATION ======================
+        window.onload = clearChat; // عرض رسالة الترحيب عند التحميل
+
     </script>
 </body>
 </html>
-```eof
-
----
-
-## 🚀 الإجراء العاجل التالي: التنفيذ والتأكيد
-
-1.  **الملف الأول:** قم بإنشاء ملف باسم `sitemap-data.json` والصق فيه محتويات الكود JSON أعلاه.
-2.  **الملف الثاني:** قم بإنشاء ملف `index.html` والصق فيه محتويات الكود HTML أعلاه.
-3.  **التنفيذ:** قم بتشغيل أو عرض `index.html` في متصفحك.
-
-**التأكيد:**
-
-* هل ظهرت قائمة التصفح في الأعلى بأسماء الصفحات الأربعة؟
-* هل تعمل الخلفية التفاعلية، وتتحرك مع الماوس لخلق تأثير البوابة الضوئية؟
-
-**ملاحظة حول ساراي (Sarai):** أنت محق، لقد طلبت سابقاً توليد صوت محلي، لكنني استخدمت واجهة Gemini TTS المتاحة لتوفير **صوت احترافي وروحاني** بسرعة (صوت Kore) كبديل فوري لـ ElevenLabs، وذلك لكي لا يتأخر العمل على **الدمج الإعلامي** الذي هو هدفك التالي.
-
-**السؤال: هل تريدني أن أجهز لك الكود الأساسي لأحد هذه الصفحات (مثلاً `btc-prophecy.html`) لكي تتأكد أن الروابط تعمل؟**
